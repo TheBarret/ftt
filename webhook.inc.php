@@ -1,19 +1,4 @@
 <?php
-/**
- * Application	: FTT (rtl_433 wrapper & reporter)
- * Version		: 1.1 (dev)
- * Author(s)	: Barret
- * License		: MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
 
 include_once('config.inc.php');
 
@@ -41,13 +26,26 @@ function discordInitialize($file,$config) {
 			if (isset($config['protocols'][$report['protocol']])) { $proto = $config['protocols'][$report['protocol']]; }
 			
 			// Sensor data 
-			if (isset($report['battery_ok'])) { $sensors['battery'] = $report['battery_ok']; }
+			if (isset($report['status'])) { $sensors['status'] = $report['status']; }
+			if (isset($report['flags'])) { $sensors['flags'] = $report['flags']; }
+			if (isset($report['state'])) { $sensors['state'] = $report['state']; }
+			if (isset($report['code'])) { $sensors['code'] = $report['code']; }
+			if (isset($report['test'])) { $sensors['test'] = $report['test']; }
+			if (isset($report['slave'])) { $sensors['slave'] = $report['slave']; }
+			if (isset($report['master'])) { $sensors['master'] = $report['master']; }
+			if (isset($report['command'])) { $sensors['command'] = $report['command']; }
+			if (isset($report['repeat'])) { $sensors['repeat'] = $report['repeat']; }
+			if (isset($report['transmit'])) { $sensors['transmit'] = $report['transmit']; }
+			if (isset($report['button'])) { $sensors['button'] = $report['button']; }
+			if (isset($report['battery_ok'])) { $sensors['battery_ok'] = $report['battery_ok']; }
+			if (isset($report['maybe_battery'])) { $sensors['maybe_battery'] = $report['maybe_battery']; }
 			if (isset($report['wind_avg_km_h'])) { $sensors['wind_avg_km_h'] = $report['wind_avg_km_h']; }
 			if (isset($report['wind_dir_deg'])) { $sensors['wind_dir_deg'] = $report['wind_dir_deg']; }
 			if (isset($report['pressure_PSI'])) { $sensors['pressure_PSI'] = $report['pressure_PSI']; }
 			if (isset($report['temperature_C'])) { $sensors['temperature_C'] = $report['temperature_C']; }
 			if (isset($report['rain_mm'])) { $sensors['rain_mm'] = $report['rain_mm']; }
-			
+			if (isset($report['humidity'])) { $sensors['humidity'] = $report['humidity']; }
+			if (isset($report['moisture'])) { $sensors['moisture'] = $report['moisture']; }
 			
 			// Reformat sensor data for display
 			$sdata	= var_export($sensors, true);
@@ -55,8 +53,10 @@ function discordInitialize($file,$config) {
 			$sdata	= str_replace(",","",$sdata);
 			$sdata	= str_replace("(","",$sdata);
 			$sdata	= str_replace(")","",$sdata);
+			$sdata	= str_replace("'","",$sdata);
 			$sdata	= str_replace("=>","=",$sdata);
 			$sdata	= trim(str_replace("array","",$sdata));
+			if (strlen($sdata) > 0) { $sdata = "```".$sdata."```"; }
 			
 			$payload = discordCreatePayload(
 						$title,
@@ -65,7 +65,9 @@ function discordInitialize($file,$config) {
 						$mod,
 						$freq,
 						$time,
-						$rssi,$snr,$noise,
+						$rssi,
+						$snr,
+						$noise,
 						$sdata);
 			file_put_contents($config['io']['last'], $report['model']);
 			return $payload;
@@ -135,7 +137,7 @@ function discordCreatePayload($title,$proto,$type,$mod,$freq,$time,$rssi,$snr,$n
 					],
                 	[
                     	"name" => "Sensor data",
-                    	"value" => "```".$sensors."```",
+                    	"value" => $sensors,
                     	"inline" => false
                 	]
             	]

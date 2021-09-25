@@ -19,7 +19,7 @@
 $config 	= array();
 $config 	= [
     'discord'	=> [
-		'webhook'	=> 'https://discord.com/api/webhooks/000000000000000/000000000000000000000',
+		'webhook'	=> 'https://discord.com/api/webhooks/890994425944211586/fzjw11YXopNVi3kNcnIiyGvSppd9i0Vs8gQ_BjDfMFcv1FgvEy_V1UAtyhvoCrMBAcAq',
 	],
 	'io'		=> [
 		'appdir' 	=> '',
