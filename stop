@@ -1,0 +1,13 @@
+#!/bin/bash
+
+screen1="rtl433"
+screen2="poller"
+
+/usr/bin/screen -X -S $screen1 quit
+/usr/bin/screen -X -S $screen2 quit
+
+echo "RTL433 monitor stopped"
+echo "Poller monitor stopped"
+echo "Done"
+
+

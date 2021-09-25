@@ -1,0 +1,43 @@
+#!/bin/bash
+
+poller="./poller.sh"
+rtl433="/usr/local/bin/rtl_433 -d 0 -g 19.2 -f 433.92M -f 915M -f 868M -H 30 -M time:utc -F json:./reports.json"
+
+screen1="rtl433"
+screen2="poller"
+
+if ! command -v "rtl_433" &> /dev/null
+then
+    echo "rtl-433 utility not found, please install."
+    exit
+fi
+if ! command -v "screen" &> /dev/null
+then
+    echo "screen not found, please install."
+    exit
+fi
+if ! command -v "inotifywait" &> /dev/null
+then
+    echo "inotifywait not found, please install."
+    exit
+fi
+if ! command -v "tail" &> /dev/null
+then
+    echo "tail not found, please install."
+    exit
+fi
+if ! command -v "php" &> /dev/null
+then
+    echo "php not found, please install."
+    exit
+fi
+
+cat /dev/null > ./reports.json
+cat /dev/null > ./last.tmp
+
+/usr/bin/screen -dmS $screen1 $rtl433
+/usr/bin/screen -dmS $screen2 $poller
+
+echo "RTL433 monitor started, to debug: screen -r ${screen1}"
+echo "Poller monitor started, to debug: screen -r ${screen2}"
+echo "Done"
