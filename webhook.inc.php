@@ -280,8 +280,9 @@ function discordCreateNoPayload() {
 
 function discordCreateHopPayload($value) {
 	if (is_numeric($value)) { 
+		$v = $value / 1000000;
 		return json_encode([
-			"content" => "**Switching frequency to {$value}Hz**",
+			"content" => "**Switching frequency to {$}MHz**",
 			"username" => "Reporter",
 			"tts" => false,
 		], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
