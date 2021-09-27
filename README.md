@@ -1,6 +1,6 @@
 # ftt
 
-![](https://i.imgur.com/NoEGBpo.png)
+![](https://cdn.discordapp.com/attachments/888970831491899392/892046482188935178/S8sIXL3.png)
 
 
 *Packages required*
