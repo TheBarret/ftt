@@ -107,10 +107,10 @@ function discordInitialize($file,$config) {
 			if (isset($sensors['transmit'])) 		{ $sdata .= "Transmit: ".$sensors['transmit']."\r\n";}
 			if (isset($sensors['button'])) 			{ $sdata .= "Button: ".$sensors['button']."\r\n";}
 			
-			if (isset($sensors['wind_avg_km_h']))	{ $sdata .= "Wind avg: ".str_replace("wind_avg_km_h =","Wind (avg): ",$sensors['wind_avg_km_h'])."km/h\r\n"; }
-			if (isset($sensors['pressure_PSI'])) 	{ $sdata .= "Pressure: ".str_replace("pressure_PSI =","Pressure : ",$sensors['wind_avg_km_h'])."PSI\r\n"; }
-			if (isset($sensors['temperature_C']))	{ $sdata .= "Temperature: ".str_replace("temperature_C =","Temperature : ",$sensors['wind_avg_km_h'])."° Celsius\r\n"; }
-			if (isset($sensors['rain_mm']))	  		{ $sdata .= "Rain: ".str_replace("rain_mm =","Rain : ",$sensors['wind_avg_km_h'])."mm\r\n"; }
+			if (isset($sensors['wind_avg_km_h']))	{ $sdata .= "Wind avg: ".str_replace("wind_avg_km_h =","Wind (avg): ",$sensors['wind_avg_km_h'])."km\\h\r\n"; }
+			if (isset($sensors['pressure_PSI'])) 	{ $sdata .= "Pressure: ".str_replace("pressure_PSI =","Pressure : ",$sensors['pressure_PSI'])."Psi\r\n"; }
+			if (isset($sensors['temperature_C']))	{ $sdata .= "Temperature: ".str_replace("temperature_C =","Temperature : ",$sensors['temperature_C'])."°C\r\n"; }
+			if (isset($sensors['rain_mm']))	  		{ $sdata .= "Rain: ".str_replace("rain_mm =","Rain : ",$sensors['rain_mm'])."mm\r\n"; }
 			if (isset($sensors['wind_dir_deg'])) 	{ $sdata .= "Wind direction: ".wDir2Cardinal(str_replace("wind_dir_deg = ","",$sensors['wind_dir_deg'])); }
 
 			// Clean up sensor data before correcting units
@@ -216,7 +216,7 @@ function discordCreatePayload($title,$proto,$type,$mod,$freq,$time,$rssi,$snr,$n
 
 function discordCreateTestPayload() {
 	return json_encode([
-		"username" => "Test",
+		"username" => "Reporter",
 		"tts" => false,
 		"embeds" => [
 			[
@@ -273,7 +273,7 @@ function discordCreateTestPayload() {
 function discordCreateNoPayload() {
 	return json_encode([
 			"content" => "**discordInitialize(): No payload created**",
-			"username" => "",
+			"username" => "Reporter",
 			"tts" => false,
 		], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 }
