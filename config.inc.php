@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Application	: FTT (rtl_433 wrapper & reporter)
  * Version		: 1.1 (dev)
@@ -19,7 +18,7 @@
 $config 	= array();
 $config 	= [
     'discord'	=> [
-		'webhook'	=> 'https://discord.com/api/webhooks/890994425944211586/fzjw11YXopNVi3kNcnIiyGvSppd9i0Vs8gQ_BjDfMFcv1FgvEy_V1UAtyhvoCrMBAcAq',
+		'webhook'	=> 'https://discord.com/api/webhooks/892032010774773790/MfwXtIRwdWHUXazXZDgEeTbRgkKPngQhDqkiLlcIyn4o3eNJpN0AmqkV7t8yObxSJJc5',
 	],
 	'io'		=> [
 		'appdir' 	=> '',
