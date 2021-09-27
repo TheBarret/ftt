@@ -15,6 +15,7 @@
 
 We use several frequencies where the rtl_433 hops, it will hop when a succesful transmission is received or the timer reaches 300 seconds.
 These frequencies are used in most cases altho be different per country.
+If you like to change these numbers, check out the `frequencies.conf` or edit the `start` script.
 
 - 433.9Mhz
 - 868.5Mhz
