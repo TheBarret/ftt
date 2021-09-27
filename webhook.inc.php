@@ -107,7 +107,7 @@ function discordInitialize($file,$config) {
 			if (isset($sensors['transmit'])) 		{ $sdata .= "Transmit: ".$sensors['transmit']."\r\n";}
 			if (isset($sensors['button'])) 			{ $sdata .= "Button: ".$sensors['button']."\r\n";}
 			
-			if (isset($sensors['wind_avg_km_h']))	{ $sdata .= "Wind avg: ".str_replace("wind_avg_km_h =","Wind (avg): ",$sensors['wind_avg_km_h'])."km\\h\r\n"; }
+			if (isset($sensors['wind_avg_km_h']))	{ $sdata .= "Wind avg: ".str_replace("wind_avg_km_h =","Wind (avg): ",$sensors['wind_avg_km_h'])."km\h\r\n"; }
 			if (isset($sensors['pressure_PSI'])) 	{ $sdata .= "Pressure: ".str_replace("pressure_PSI =","Pressure : ",$sensors['pressure_PSI'])."Psi\r\n"; }
 			if (isset($sensors['temperature_C']))	{ $sdata .= "Temperature: ".str_replace("temperature_C =","Temperature : ",$sensors['temperature_C'])."°C\r\n"; }
 			if (isset($sensors['rain_mm']))	  		{ $sdata .= "Rain: ".str_replace("rain_mm =","Rain : ",$sensors['rain_mm'])."mm\r\n"; }
