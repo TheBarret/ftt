@@ -1,7 +1,8 @@
 #!/bin/bash
 
+freqs=$(cat ./frequencies.conf)
 poller="./poller.sh"
-rtl433="/usr/local/bin/rtl_433 -d 0 -g 0 -f 433.92M -f 915M -f 868M -H 30 -E hop -M time:utc -F json:./reports.json"
+rtl433="/usr/local/bin/rtl_433 -d 0 -g 0 ${freqs} -H 300 -E hop -M time:utc -F json:./reports.json"
 
 screen1="rtl433"
 screen2="poller"
