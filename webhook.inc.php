@@ -21,31 +21,24 @@ define("DEBUG",false);
 
 function discordInitialize($file,$config) {
 	if (file_exists($file)) {
+		
+		// Load seen database
+		if (file_exists($config['io']['seen'])) {
+			$seen = loadJson($config['io']['seen']);
+		} else {
+			$seen = ['devices'];
+		}
+		
 		// Fetch last line in report.json
-		// Note:
-		// Needs be done differently in the future
-		// because reports can come in multiple entries
 		$line 			= `tail -n 1 $file`;
 		
 		// Decode json data into array
 		$report 		= json_decode($line,true);
 		
-		// Get last entry to avoid duplicates
-		if (isset($config['io']['last'])) {
-			if (file_exists($config['io']['last'])) {
-				$current = file_get_contents($config['io']['last']);
-			} else { $current = "0"; }
-		} else { $current = "0"; }
-		
-		// If we have a report header and last report is not equal to last time
 		if (isset($report['model'])) {
-			print("DEVICE: ".$report['model']."\r\n");
-			if ($report['model'] == $current) {
-				print("Nothing to report, exiting...\r\n");
-				exit(0);
-			} else {
-				print("Creating payload...\r\n");
-			}
+			
+			// Exit if we already seen this device
+			if (isset($seen['devices'][$report['id']])) { exit(0); }
 
 			// Initialize variables
 			$sensors	= array();
@@ -67,8 +60,10 @@ function discordInitialize($file,$config) {
 			// Check and match up protocol name with protocol number
 			if (isset($config['protocols'][$report['protocol']])) { $proto = $config['protocols'][$report['protocol']]; }
 
-			// Collect sensor data if matching fields are set
+			// Collect selected fields for later display
+			if (isset($report['id']))			{ $sensors['id']			= $report['id']; }
 			if (isset($report['status']))		{ $sensors['status']		= $report['status']; }
+			if (isset($report['channel']))		{ $sensors['channel']		= $report['channel']; }
 			if (isset($report['flags']))		{ $sensors['flags']			= $report['flags']; }
 			if (isset($report['state']))		{ $sensors['state']			= $report['state']; }
 			if (isset($report['code']))			{ $sensors['code']			= $report['code']; }
@@ -94,7 +89,8 @@ function discordInitialize($file,$config) {
 			if (isset($sensors['battery_ok']))	{
 				if ($sensors['battery_ok'] == 1) { $sdata .= "Battery: OK\r\n"; } else { $sdata .= "Battery: BAD\r\n"; }
 			}
-			
+			if (isset($sensors['id'])) 				{ $sdata .= "ID: ".$sensors['id']."\r\n";}
+			if (isset($sensors['channel'])) 		{ $sdata .= "channel: ".$sensors['channel']."\r\n";}
 			if (isset($sensors['status'])) 			{ $sdata .= "Status: ".$sensors['status']."\r\n";}
 			if (isset($sensors['flags'])) 			{ $sdata .= "Flags: ".$sensors['flags']."\r\n";}
 			if (isset($sensors['state'])) 			{ $sdata .= "State: ".$sensors['state']."\r\n";}
@@ -106,13 +102,22 @@ function discordInitialize($file,$config) {
 			if (isset($sensors['repeat'])) 			{ $sdata .= "Repeat: ".$sensors['repeat']."\r\n";}
 			if (isset($sensors['transmit'])) 		{ $sdata .= "Transmit: ".$sensors['transmit']."\r\n";}
 			if (isset($sensors['button'])) 			{ $sdata .= "Button: ".$sensors['button']."\r\n";}
-			
-			if (isset($sensors['wind_avg_km_h']))	{ $sdata .= "Wind avg: ".str_replace("wind_avg_km_h =","Wind (avg): ",$sensors['wind_avg_km_h'])."km\h\r\n"; }
+			if (isset($sensors['humidity'])) 		{ $sdata .= "humidity: ".$sensors['humidity']."\r\n";}
+			if (isset($sensors['moisture'])) 		{ $sdata .= "moisture: ".$sensors['moisture']."\r\n";}
+			if (isset($sensors['wind_avg_km_h']))	{ $sdata .= "Wind avg: ".str_replace("wind_avg_km_h =","Wind (avg): ",$sensors['wind_avg_km_h'])."kmh\r\n"; }
 			if (isset($sensors['pressure_PSI'])) 	{ $sdata .= "Pressure: ".str_replace("pressure_PSI =","Pressure : ",$sensors['pressure_PSI'])."Psi\r\n"; }
 			if (isset($sensors['temperature_C']))	{ $sdata .= "Temperature: ".str_replace("temperature_C =","Temperature : ",$sensors['temperature_C'])."°C\r\n"; }
 			if (isset($sensors['rain_mm']))	  		{ $sdata .= "Rain: ".str_replace("rain_mm =","Rain : ",$sensors['rain_mm'])."mm\r\n"; }
 			if (isset($sensors['wind_dir_deg'])) 	{ $sdata .= "Wind direction: ".wDir2Cardinal(str_replace("wind_dir_deg = ","",$sensors['wind_dir_deg'])); }
-
+			
+			// Save device info and re-cache array
+			$seen['devices'][$sensors['id']] = [$time,$title,$freq,$proto,$rssi];
+			saveJson($config['io']['seen'],$seen);
+			
+			// Get possible distance
+			//10 ^ ((Measured Power – RSSI)/(10 * N))
+			$dist = 10
+			
 			// Clean up sensor data before correcting units
 			$sdata = trimSensorData($sdata);
 			
@@ -133,179 +138,25 @@ function discordInitialize($file,$config) {
 				print("Data: ".$sdata."\r\n");
 			}
 
-
 			// Hand off sensor data to Discord
 			if (DEBUG) {
 				$payload = discordCreateTestPayload();
 			} else {
 				$payload = discordCreatePayload($title,$proto,$type,$mod,$freq,$time,$rssi,$snr,$noise,$sdata);
 			}
-			
-			// Save last discovery name, avoid repeating finds
-			file_put_contents($config['io']['last'], $report['model']);
 			return $payload;
-
-		// Notify if 433 utlitiy makes a hop to new frequency
 		} elseif (isset($report['center_frequency'])) {
-			$payload = discordCreateHopPayload($report['center_frequency']);
-			return $payload;
+			// Notify if 433 utlitiy makes a hop to new frequency
+			return discordCreateHopPayload($report['center_frequency']);
+		} elseif (isset($report['frames'])) {
+			// Notify for a status frame
+			return discordCreateStatusPayload($report);
 		} else {
-			$payload = discordCreateNoPayload();
-			return $payload;
+			// Notify if 433 utlitiy makes a hop to new frequency
+			exit(0);
 		}
 	} else {
 		throw new ErrorException("File not found: ${file}");
 	}
-}
-
-function discordCreatePayload($title,$proto,$type,$mod,$freq,$time,$rssi,$snr,$noise,$sensors) {
-	return json_encode([
-		"username" => "Reporter",
-		"tts" => false,
-		"embeds" => [
-			[
-				"title" => $title,
-				"type" => "rich",
-				"color" => hexdec( "3366ff" ),
-				"fields" => [
-	                [
-                    	"name" => "Type",
-                    	"value" => $type,
-                    	"inline" => true
-                	],
-                	[
-						"name" => "Modulation",
-    	                "value" => $mod,
-                    	"inline" => true
-                	],
-                	[
-                    	"name" => "Frequency",
-                    	"value" => $freq,
-                    	"inline" => true
-                	],
-                	[
-						"name" => "Signal to noise",
-    	                "value" => $snr."dB",
-						"inline" => true
-            	    	],
-                	[
-                    	"name" => "Signal strength",
-                    	"value" => $rssi."dB (".rssiTest($rssi).")",
-                    	"inline" => true
-                	],
-                	[
-                    	"name" => "Noise",
-                    	"value" => $noise."dB",
-                    	"inline" => true
-                	],
-                	[
-						"name" => "Protocol",
-						"value" => $proto,
-						"inline" => false
-					],
-                	[
-                    	"name" => "Data",
-                    	"value" => $sensors,
-                    	"inline" => false
-                	]
-            	]
-        ]
-	]
-	], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-}
-
-function discordCreateTestPayload() {
-	return json_encode([
-		"username" => "Reporter",
-		"tts" => false,
-		"embeds" => [
-			[
-				"title" => "1",
-				"type" => "rich",
-				"color" => hexdec( "3366ff" ),
-				"fields" => [
-	                [
-                    	"name" => "Type",
-                    	"value" => 2,
-                    	"inline" => true
-                	],
-                	[
-						"name" => "Modulation",
-    	                "value" => 3,
-                    	"inline" => true
-                	],
-                	[
-                    	"name" => "Frequency",
-                    	"value" => 4,
-                    	"inline" => true
-                	],
-                	[
-						"name" => "Signal to noise",
-    	                "value" => 5,
-						"inline" => true
-            	    	],
-                	[
-                    	"name" => "Signal strength",
-                    	"value" => 6,
-                    	"inline" => true
-                	],
-                	[
-                    	"name" => "Noise",
-                    	"value" => 7,
-                    	"inline" => true
-                	],
-                	[
-						"name" => "Protocol",
-						"value" => 8,
-						"inline" => false
-					],
-                	[
-                    	"name" => "Data",
-                    	"value" => 9,
-                    	"inline" => false
-                	]
-            	]
-        ]
-	]
-	], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-}
-
-function discordCreateNoPayload() {
-	return json_encode([
-			"content" => "**discordInitialize(): No payload created**",
-			"username" => "Reporter",
-			"tts" => false,
-		], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-}
-
-function discordCreateHopPayload($value) {
-	if (is_numeric($value)) { 
-		$v = $value / 1000000;
-		return json_encode([
-			"content" => "**Switching frequency to {$v}MHz**",
-			"username" => "Reporter",
-			"tts" => false,
-		], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-	} else {
-		return json_encode([
-			"content" => "**Switching frequency to {$value}Hz**",
-			"username" => "Reporter",
-			"tts" => false,
-		], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-	}
-}
-
-// hand off data to discord API server
-function discordSend($payload,$config) {
-	$ch = curl_init($config['discord']['webhook']);
-	curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-type: application/json'));
-	curl_setopt($ch, CURLOPT_POST, 1);
-	curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-	curl_setopt($ch, CURLOPT_HEADER, 0);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-	$response = curl_exec( $ch );
-	curl_close( $ch );
-	return $response;
 }
 ?>

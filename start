@@ -2,7 +2,7 @@
 
 freqs=$(cat ./frequencies.conf)
 poller="./poller.sh"
-rtl433="/usr/local/bin/rtl_433 -d 0 -g 0 ${freqs} -H 300 -E hop -M time:utc -F json:./reports.json"
+rtl433="/usr/local/bin/rtl_433 -d 0 -g 0 ${freqs} -H 300 -M time:utc -F json:./reports.json"
 
 screen1="rtl433"
 screen2="poller"
@@ -35,7 +35,7 @@ fi
 
 echo "Resetting reports..."
 cat /dev/null > ./reports.json
-cat /dev/null > ./last.tmp
+#cat /dev/null > ./seen.json.json
 
 echo "Loading screens..."
 /usr/bin/screen -dmS $screen1 $rtl433

@@ -22,5 +22,5 @@ include_once('webhook.inc.php');
 
 $payload 	= discordInitialize($config['io']['reports'],$config);
 $result		= discordSend($payload,$config);
-print("Result: {$result}\r\n");
+if (strlen($result)) { print("Result: {$result}\r\n"); }
 ?>

@@ -18,19 +18,23 @@
 $config 	= array();
 $config 	= [
     'discord'	=> [
-		'webhook'	=> 'https://discord.com/api/webhooks/CHANGE_ME',
+		'webhook'	=> 'CHANGE ME',
 	],
 	'io'		=> [
 		'appdir' 	=> '',
 		'reports' 	=> '',
+		'offset'	=> '',
+		'seen'		=> '',
 	],
 	'protocols' => [],
 ];
 
 // Directory and output settings
 $config['io']['appdir'] 		= getcwd();
+$config['io']['seen'] 			= getcwd()."/seen.json";
 $config['io']['reports'] 		= getcwd()."/reports.json";
 $config['io']['last'] 			= getcwd()."/last.tmp";
+$config['io']['offset'] 		= getcwd()."/offset.tmp";
 
 // Protocols
 $config['protocols'][1] 	= "Silvercrest Remote Control";
